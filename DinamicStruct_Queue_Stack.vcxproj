@@ -148,6 +148,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DinamicStruct_Queue_Stack.cpp" />
+    <ClCompile Include="QueueInMasBase.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="QueuMas.h" />
+    <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
