@@ -162,6 +162,139 @@ void MidleLevel()
 	
 }
 
+
+
+
+
+////============================================================================================================================
+struct Stack
+{
+    char data;
+    Stack* next;
+};
+
+class StackNode
+{
+private:
+    Stack* Head;
+
+public:
+    StackNode()
+    {
+        Head = nullptr;
+    }
+
+    void push(char val)
+    {
+        Stack* Ptr = new Stack;
+        Ptr->data = val;
+
+        if (Head == nullptr)
+        {
+            Head = Ptr;
+            Ptr->next = nullptr;
+        }
+        else
+        {
+            Stack* temp = Head;
+            while (temp->next != nullptr)
+                temp = temp->next;
+
+            temp->next = Ptr;
+            Ptr->next = nullptr;
+        }
+    }
+
+    void pop()
+    {
+        Stack* temp = Head,
+            * temp1 = nullptr;
+        if (Head != nullptr)
+        {
+            if (Head->next == nullptr)
+            {
+                delete Head;
+                Head = nullptr;
+            }
+            else
+            {
+                while (temp->next != nullptr)
+                {
+                    temp1 = temp;
+                    temp = temp->next;
+                }
+
+                delete temp;
+                temp = temp1->next = nullptr;
+            }
+        }
+    }
+
+    bool isEmpty()
+    {
+        return Head == nullptr;
+    }
+
+    int Prioretet(char value)
+    {
+        if (value == '^')
+            return 4;
+        else if (value == '*' || value == '/')
+            return 3;
+        else if (value == '+' || value == '-')
+            return 2;
+        else
+            return 1;
+    }
+
+    char Verschina()
+    {
+        Stack* Ptr = Head;
+        if (Head != nullptr)
+        {
+            if (Ptr->next == nullptr)
+                return Ptr->data;
+            else
+            {
+                while (Ptr->next != nullptr)
+                    Ptr = Ptr->next;
+
+                return Ptr->data;
+            }
+        }
+        else
+            return NULL;
+    }
+
+    void Print()
+    {
+        Stack* Ptr = Head;
+        if (Head == nullptr)
+            wcout << L"Стэк пуст!\n";
+        else
+        {
+            while (Ptr != nullptr)
+            {
+                cout << Ptr->data;
+                Ptr = Ptr->next;
+            }
+        }
+    }
+
+};
+
+int translationToNumber(char* number)
+{
+    int size = strlen(number) - 1;
+
+    int chislo = 0;
+    for (int i = 1, j = size; j >= 0; i *= 10, j--)
+        chislo += (number[j] - '0') * i;
+
+    return chislo;
+}
+
+
 void HardLevel()
 {
 	/*
@@ -174,14 +307,142 @@ void HardLevel()
 числа и знаки из строки, числа нужно заносить в стек, а как встретится знак операции, вынимать 2 числа из 
 стека, применять к ним текущую операцию, а результат заносить в стек.
 	*/
+	cout << "\nHard task level\n";
+  // wcout.imbue(locale(".866"));
 
+    StackNode stack;
+    Stack* Ptr = nullptr, * Ptr1 = nullptr;
+
+    const int size = 256;
+    int size_f, j = 0, size_p = 0, size_i,
+        resultat, chislo_l, chislo_r;
+
+    char infix[size] = "", postfix[size] = "",
+        value[size] = "", prom_str[size] = "",
+        l_push[size] = "", R_push[size] = "";
+
+    wcout << L"Введите выражение: ";
+    cin.getline(infix, sizeof(infix), '\n');
+
+    /*-------------------------Перевод в постфиксную нотацию----------------------------*/
+    size_i = strlen(infix) + 1;
+    for (int i = 0; i < size_i; i++)
+    {
+        if (infix[i] <= '9' && infix[i] >= '1')
+            postfix[size_p++] = infix[i];
+        else if (infix[i] == '(')
+            stack.push(infix[i]);
+        else if (infix[i] == ')')
+        {
+            while (stack.Verschina() != '(')
+            {
+                postfix[size_p++] = stack.Verschina();
+                stack.pop();
+            }
+
+            stack.pop();
+        }
+        else if (infix[i] == '+' || infix[i] == '-' || infix[i] == '*' || infix[i] == '/' || infix[i] == '^')
+        {
+            postfix[size_p++] = ' ';
+
+            if (stack.isEmpty())
+                stack.push(infix[i]);
+            else
+            {
+                if (stack.Prioretet(infix[i]) > stack.Prioretet(stack.Verschina()))
+                    stack.push(infix[i]);
+                else
+                {
+                    postfix[size_p--] = ' ';
+                    while (!stack.isEmpty() && stack.Prioretet(stack.Verschina()) >= stack.Prioretet(infix[i]))
+                    {
+                        postfix[size_p++] = stack.Verschina();
+                        stack.pop();
+                    }
+
+                    stack.push(infix[i]);
+                    postfix[size_p++] = ' ';
+                }
+            }
+        }
+    }
+
+    while (!stack.isEmpty())
+    {
+        postfix[size_p++] = stack.Verschina();
+        stack.pop();
+    }
+
+    wcout << L"Результат в постфиксной записи: " << postfix << "\n";
+    /*-----------------------------------Конец переводa---------------------------------*/
+    /*-------------------------Вычисление в постфиксной нотации-------------------------*/
+
+    size_f = strlen(postfix);
+    for (int i = 0; i < size_f; i++)
+    {
+        if (postfix[i] <= '9' && postfix[i] >= '1' || postfix[i] == ' ')
+            stack.push(postfix[i]);
+        else if (postfix[i] == '+' || postfix[i] == '-' || postfix[i] == '*' || postfix[i] == '/' || postfix[i] == '^')
+        {
+            j = 0;
+            while (stack.Verschina() != ' ' && stack.Verschina() != NULL)
+            {
+                l_push[j++] = stack.Verschina();
+                stack.pop();
+            }
+
+            stack.pop();
+            strrev(l_push);
+            chislo_l = translationToNumber(l_push);
+            memset(l_push, 0, 256);
+
+            j = 0;
+            while (stack.Verschina() != ' ' && stack.Verschina() != NULL)
+            {
+                R_push[j++] = stack.Verschina();
+                stack.pop();
+            }
+
+            strrev(R_push);
+            chislo_r = translationToNumber(R_push);
+            memset(R_push, 0, 256);
+
+            if (postfix[i] == '+')
+                resultat = chislo_r + chislo_l;
+            else if (postfix[i] == '-')
+                resultat = chislo_r - chislo_l;
+            else if (postfix[i] == '*')
+                resultat = chislo_r * chislo_l;
+            else if (postfix[i] == '/')
+                resultat = chislo_r / chislo_l;
+
+            j = 0;
+            while (resultat >= 1)
+            {
+                value[j++] = ((resultat % 10) + '0');
+                resultat = resultat / 10;
+            }
+
+            strrev(value);
+
+            for (int s = 0; s < strlen(value); s++)
+                stack.push(value[s]);
+        }
+    }
+
+    wcout << L"Результат вычисления выражения в постфиксной нотации: ";
+    stack.Print();
+    /*--------------------------------Конец вычисления--------------------------------*/
+
+    cout << "\n\n";
 
 }
-void main()
+void main(void)
 {
 	SetConsoleOutputCP(1251);
 	SetConsoleCP(1251);
-	setlocale(0, "");
+	setlocale(LC_ALL, "rus");
 	srand(time(0));
 	//BaseLevel();
 	//MidleLevel();
